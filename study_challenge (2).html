@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>100일 공부 챌린지 — Gia & Daniel</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh}
+
+.header{background:#fff;border-bottom:1px solid #e8e6e0;padding:14px 20px;text-align:center}
+.header h1{font-size:19px;font-weight:700}
+.header p{font-size:11px;color:#999;margin-top:2px}
+
+.nav{display:flex;background:#fff;border-bottom:1px solid #e8e6e0;overflow-x:auto;padding:0 4px}
+.nb{padding:11px 13px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:600;color:#aaa;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0}
+.nb.on{color:#1a1a1a;border-bottom-color:#1a1a1a}
+
+.main{max-width:760px;margin:0 auto;padding:16px 14px 60px}
+.tab{display:none}.tab.on{display:block}
+
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:14px;padding:16px;margin-bottom:11px}
+
+/* Battle */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.player-card{background:#fff;border:1.5px solid #e8e6e0;border-radius:16px;padding:16px;text-align:center}
+.player-card.leading{border-color:#BA7517;box-shadow:0 0 0 3px #FAEEDA}
+.avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin:0 auto 7px}
+.av-g{background:#FBEAF0;color:#993556}.av-d{background:#E6F1FB;color:#185FA5}.av-gold{background:#FAEEDA;color:#BA7517}
+.pname{font-size:15px;font-weight:700}
+.plvl{font-size:11px;color:#999;margin-top:2px}
+.pstats{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:9px 0}
+.stat{background:#f8f7f3;border-radius:9px;padding:7px;text-align:center}
+.sn{font-size:18px;font-weight:700}
+.sl{font-size:10px;color:#999;margin-top:1px}
+.pb{background:#f0ede8;height:8px;border-radius:4px;overflow:hidden;margin:6px 0}
+.pf{height:100%;border-radius:4px;transition:width .5s}
+.pfg{background:#D4537E}.pfd{background:#378ADD}.pfb{background:#BA7517}
+.pct{font-size:11px;color:#bbb;text-align:right}
+
+/* Level */
+.lv-wrap{display:flex;align-items:center;gap:13px}
+.lv-badge{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+.lv-info{flex:1;min-width:0}
+.lv-name{font-size:14px;font-weight:700}
+.lv-sub{font-size:11px;color:#999;margin-top:2px}
+.lv-row{display:flex;justify-content:space-between;font-size:11px;color:#bbb;margin-top:3px}
+
+/* Active timer card */
+.timer-card{background:linear-gradient(135deg,#1D9E75,#0F6E56);color:#fff;border-radius:14px;padding:18px;margin-bottom:11px}
+.timer-card.paused{background:linear-gradient(135deg,#888780,#5F5E5A)}
+.timer-label{font-size:11px;opacity:.85;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.timer-task{font-size:14px;font-weight:600;margin-top:3px;line-height:1.3}
+.timer-display{font-size:38px;font-weight:700;font-family:'SF Mono',Monaco,monospace;letter-spacing:1px;margin:8px 0;text-align:center}
+.timer-actions{display:flex;gap:8px;justify-content:center;margin-top:6px}
+.timer-btn{padding:8px 18px;border:1.5px solid rgba(255,255,255,.4);border-radius:10px;background:rgba(255,255,255,.15);cursor:pointer;font-size:13px;font-weight:600;color:#fff}
+.timer-btn:hover{background:rgba(255,255,255,.25)}
+.timer-btn.primary{background:#fff;color:#0F6E56;border-color:#fff}
+
+/* Tasks */
+.task-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.task-date{font-size:11px;color:#bbb;margin-top:2px}
+.today-total{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:#E1F5EE;color:#0F6E56;border-radius:7px;font-size:11px;font-weight:700}
+.ti{display:flex;align-items:center;gap:9px;padding:9px 8px;border-radius:10px;border:1px solid transparent;transition:all .15s}
+.ti:hover{background:#f8f7f3}
+.ti.active{background:#E1F5EE;border-color:#1D9E75}
+.ck{width:20px;height:20px;border:2px solid #ddd;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
+.ck.on{background:#1D9E75;border-color:#1D9E75}
+.tl{font-size:13px;flex:1;cursor:pointer}
+.tl.dn{color:#ccc;text-decoration:line-through}
+.task-time{font-family:'SF Mono',Monaco,monospace;font-size:12px;color:#888;font-weight:600;min-width:48px;text-align:right;flex-shrink:0}
+.task-time.running{color:#0F6E56}
+.task-btn{border:1px solid #e0ddd8;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;background:#fff;color:#1a1a1a;flex-shrink:0;white-space:nowrap}
+.task-btn:hover{background:#f5f4f0}
+.task-btn.start{border-color:#1D9E75;color:#1D9E75;background:#E1F5EE}
+.task-btn.pause{border-color:#BA7517;color:#BA7517;background:#FAEEDA}
+
+.done-banner{background:#E1F5EE;color:#0F6E56;border-radius:10px;padding:11px;text-align:center;font-size:13px;font-weight:700;margin-top:9px;display:none}
+
+/* DRAMATIC WARNING SYSTEM */
+.warn-card{background:#fff;border:1.5px solid #e8e6e0;border-radius:14px;padding:16px;margin-bottom:11px;transition:all .3s}
+.warn-card.lvl-1{border-color:#F09595;background:#FFFAFA}
+.warn-card.lvl-2{border-color:#E24B4A;background:#FCEBEB;border-width:2px;animation:wPulse 2s ease-in-out infinite}
+.warn-card.lvl-3{border-color:#A32D2D;background:linear-gradient(135deg,#FCEBEB,#F09595);border-width:3px;animation:wDanger 1s ease-in-out infinite}
+@keyframes wPulse{0%,100%{box-shadow:0 0 0 0 rgba(226,75,74,.3)}50%{box-shadow:0 0 0 10px rgba(226,75,74,0)}}
+@keyframes wDanger{0%,100%{box-shadow:0 0 0 0 rgba(163,45,45,.6),inset 0 0 0 0 rgba(163,45,45,0)}50%{box-shadow:0 0 0 12px rgba(163,45,45,0),inset 0 0 30px 0 rgba(163,45,45,.15)}}
+.warn-card.shake{animation:shake .5s}
+@keyframes shake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-4px)}20%,40%,60%,80%{transform:translateX(4px)}}
+
+.warn-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px}
+.warn-info{display:flex;align-items:center;gap:11px}
+.warn-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
+.warn-card.lvl-0 .warn-title{color:#666}
+.warn-card.lvl-1 .warn-title{color:#A32D2D}
+.warn-card.lvl-2 .warn-title{color:#791F1F}
+.warn-card.lvl-3 .warn-title{color:#501313;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.warn-icon{font-size:22px;display:inline-block}
+.warn-card.lvl-2 .warn-icon{animation:iconPulse 1s ease-in-out infinite}
+.warn-card.lvl-3 .warn-icon{animation:iconShake .4s ease-in-out infinite;font-size:26px}
+@keyframes iconPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+@keyframes iconShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-15deg)}75%{transform:rotate(15deg)}}
+
+.warn-dots{display:flex;gap:6px}
+.warn-dot{width:18px;height:18px;border-radius:50%;border:2px solid #e0ddd8;background:#fff;transition:all .3s}
+.warn-dot.on{background:#E24B4A;border-color:#791F1F;box-shadow:0 0 8px rgba(226,75,74,.5);animation:dotGlow 1.5s ease-in-out infinite}
+.warn-card.lvl-3 .warn-dot.on{background:#A32D2D;border-color:#501313;animation:dotGlow 1s ease-in-out infinite,dotShake .4s ease-in-out infinite}
+@keyframes dotGlow{0%,100%{box-shadow:0 0 8px rgba(226,75,74,.5);transform:scale(1)}50%{box-shadow:0 0 14px rgba(226,75,74,.9);transform:scale(1.15)}}
+@keyframes dotShake{0%,100%{margin-left:0}50%{margin-left:1px}}
+
+.warn-status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px}
+.warn-card.lvl-0 .warn-status{background:#f0ede8;color:#888}
+.warn-card.lvl-1 .warn-status{background:#FCEBEB;color:#A32D2D}
+.warn-card.lvl-2 .warn-status{background:#E24B4A;color:#fff}
+.warn-card.lvl-3 .warn-status{background:#791F1F;color:#fff}
+
+.warn-msg{font-size:12px;font-weight:600;margin-top:10px;padding:9px 12px;border-radius:8px;text-align:center}
+.warn-card.lvl-0 .warn-msg{display:none}
+.warn-card.lvl-1 .warn-msg{background:#FCEBEB;color:#A32D2D}
+.warn-card.lvl-2 .warn-msg{background:#E24B4A;color:#fff;font-weight:700}
+.warn-card.lvl-3 .warn-msg{background:#A32D2D;color:#fff;font-weight:800;font-size:14px;animation:msgFlash 1s ease-in-out infinite}
+@keyframes msgFlash{0%,100%{opacity:1}50%{opacity:.6}}
+
+.warn-add-btn{padding:8px 14px;border:2px solid #E24B4A;border-radius:9px;background:#fff;cursor:pointer;font-size:13px;font-weight:700;color:#A32D2D;flex-shrink:0;transition:all .15s}
+.warn-add-btn:hover{background:#E24B4A;color:#fff;transform:scale(1.05)}
+.warn-card.lvl-2 .warn-add-btn{background:#E24B4A;color:#fff}
+.warn-card.lvl-3 .warn-add-btn{background:#791F1F;color:#fff;border-color:#501313}
+.warn-reset-btn{padding:7px 11px;border:1.5px solid #e0ddd8;border-radius:9px;background:#fff;cursor:pointer;font-size:12px;font-weight:600;color:#666}
+.warn-reset-btn:hover{background:#f5f4f0}
+
+/* Section header */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.sec-title{font-size:14px;font-weight:700;color:#444}
+.sec-sub{font-size:11px;color:#bbb;margin-top:2px}
+
+/* Editor */
+.tei{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid #f5f3f0;background:#fff}
+.tei:last-child{border-bottom:none}
+.drag-handle{color:#ccc;cursor:grab;font-size:14px;flex-shrink:0;user-select:none;letter-spacing:-2px}
+.tei-num{font-size:11px;color:#ccc;min-width:14px}
+.tei-text{flex:1;font-size:13px}
+.tei-del{border:none;background:none;cursor:pointer;color:#ddd;font-size:18px;padding:0 2px}
+.tei-del:hover{color:#e24b4a}
+.task-box{border:1px solid #eee;border-radius:11px;overflow:hidden;min-height:38px}
+.task-box-empty{padding:18px;text-align:center;color:#ccc;font-size:13px}
+
+/* Inputs */
+.add-row{display:flex;gap:7px;margin-top:9px}
+.inp{flex:1;padding:9px 12px;border:1.5px solid #e0ddd8;border-radius:10px;font-size:13px;outline:none;background:#fff;color:#1a1a1a}
+.inp:focus{border-color:#aaa}
+.btn{padding:9px 13px;border:1.5px solid #e0ddd8;border-radius:10px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a;white-space:nowrap}
+.btn:hover{background:#f5f4f0}
+.btn-green{border-color:#1D9E75;color:#1D9E75;background:#E1F5EE}
+.btn-green:hover{background:#1D9E75;color:#fff}
+
+/* Mode select */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}
+.mode-btn{padding:13px;border:2px solid #e0ddd8;border-radius:11px;background:#fff;cursor:pointer;text-align:center}
+.mode-btn:hover{background:#f8f7f3}
+.mode-btn.on-shared{border-color:#1D9E75;background:#E1F5EE}
+.mode-btn.on-individual{border-color:#185FA5;background:#E6F1FB}
+.mode-icon{font-size:22px}
+.mode-label{font-size:13px;font-weight:700;margin-top:5px}
+.mode-desc{font-size:11px;color:#999;margin-top:2px}
+
+/* Preview row showing both kids */
+.preview-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #eee}
+.preview-col{padding:9px 11px;border-radius:10px;font-size:12px}
+.preview-col.g{background:#FBEAF0;color:#993556}
+.preview-col.d{background:#E6F1FB;color:#185FA5}
+.preview-label{font-size:10px;font-weight:700;letter-spacing:.5px;opacity:.75;margin-bottom:3px}
+.preview-content{font-size:13px;font-weight:700}
+
+.tag{display:inline-flex;padding:2px 9px;border-radius:6px;font-size:11px;font-weight:700}
+.tag-g{background:#FBEAF0;color:#993556}
+.tag-d{background:#E6F1FB;color:#185FA5}
+.tag-s{background:#E1F5EE;color:#0F6E56}
+
+/* Books */
+.bi{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f5f3f0}
+.bi:last-child{border-bottom:none}
+.bck{width:17px;height:17px;border:2px solid #ddd;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.bck.on{background:#BA7517;border-color:#BA7517}
+.bno{font-size:11px;color:#ccc;min-width:22px;text-align:right}
+.bt{font-size:13px;flex:1}
+.bt.dn{color:#ccc;text-decoration:line-through}
+.xb{border:none;background:none;cursor:pointer;color:#ddd;font-size:17px;padding:0 3px;line-height:1}
+.xb:hover{color:#e24b4a}
+
+.bseg{display:flex;gap:3px;background:#f0ede8;padding:3px;border-radius:10px}
+.sb{padding:5px 13px;border:none;border-radius:8px;font-size:12px;cursor:pointer;background:none;color:#999;font-weight:700}
+.sb.on{background:#fff;color:#1a1a1a;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* Stats */
+.chart-box{height:240px;position:relative}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:11px}
+.stat-big{background:#f8f7f3;border-radius:11px;padding:13px;text-align:center}
+.stat-big-n{font-size:22px;font-weight:700}
+.stat-big-l{font-size:11px;color:#999;margin-top:3px}
+
+.cal-row{display:flex;align-items:flex-start;gap:7px;margin-bottom:7px}
+.cal-lbl{font-size:11px;font-weight:700;min-width:50px;padding-top:2px}
+.dots{display:flex;flex-wrap:wrap;gap:3px}
+.dot{width:9px;height:9px;border-radius:50%;background:#e8e6e0}
+
+.empty{text-align:center;color:#ccc;font-size:13px;padding:20px}
+
+#toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-60px);background:#1a1a1a;color:#fff;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;z-index:200;pointer-events:none;white-space:nowrap;max-width:90vw}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.warn{background:#E24B4A;font-weight:700;animation:toastShake .5s ease-out}
+#toast.danger{background:#A32D2D;font-weight:800;animation:toastShake .5s ease-out, dangerPulse 1s ease-in-out 0.5s 2}
+@keyframes toastShake{0%{transform:translateX(-50%) translateY(0)}25%{transform:translateX(calc(-50% - 8px)) translateY(0)}50%{transform:translateX(-50%) translateY(0)}75%{transform:translateX(calc(-50% + 8px)) translateY(0)}100%{transform:translateX(-50%) translateY(0)}}
+@keyframes dangerPulse{0%,100%{box-shadow:0 0 0 0 rgba(163,45,45,.7)}50%{box-shadow:0 0 0 15px rgba(163,45,45,0)}}
+
+@media (max-width:480px){
+  .g2{grid-template-columns:1fr}
+  .mode-grid{grid-template-columns:1fr}
+  .preview-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="header">
+  <h1>100일 공부 챌린지</h1>
+  <p>Gia &amp; Daniel — 영어 독서 대결</p>
+</div>
+
+<div class="nav">
+  <button class="nb on"  data-t="battle"  onclick="gt('battle')">🏆 대결</button>
+  <button class="nb"     data-t="gia"     onclick="gt('gia')">🌸 Gia</button>
+  <button class="nb"     data-t="daniel"  onclick="gt('daniel')">⚡ Daniel</button>
+  <button class="nb"     data-t="tasks"   onclick="gt('tasks')">✏️ 할 일</button>
+  <button class="nb"     data-t="stats"   onclick="gt('stats')">📊 통계</button>
+  <button class="nb"     data-t="books"   onclick="gt('books')">📚 책</button>
+</div>
+
+<div class="main">
+
+<!-- BATTLE -->
+<div id="tab-battle" class="tab on">
+  <div class="g2" style="margin-bottom:11px">
+    <div class="player-card" id="bc-gia"></div>
+    <div class="player-card" id="bc-daniel"></div>
+  </div>
+  <div id="bm" style="text-align:center;font-size:13px;color:#777;font-weight:500;margin-bottom:11px"></div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;color:#888;margin-bottom:9px">100일 달력</div>
+    <div id="cg" style="margin-bottom:7px"></div>
+    <div id="cd"></div>
+  </div>
+</div>
+
+<!-- GIA -->
+<div id="tab-gia" class="tab">
+  <div class="card" id="gl"></div>
+  <div id="g-timer-card"></div>
+  <div class="card">
+    <div class="task-hdr">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#555">오늘의 공부 체크리스트</div>
+        <div id="gdt" class="task-date"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        <span id="gsc" style="font-size:11px;color:#aaa"></span>
+        <span class="today-total">⏱ <span data-time-total="gia">0:00</span></span>
+      </div>
+    </div>
+    <div id="gtk"></div>
+    <div id="g-empty" class="empty" style="display:none">할 일이 없어요!<br><span style="font-size:12px">✏️ 할 일 탭에서 추가해보세요</span></div>
+    <div class="done-banner" id="gdn">🎉 오늘 공부 완료! +1일 달성!</div>
+  </div>
+  <div class="warn-card lvl-0" id="g-warn-card">
+    <div class="warn-row">
+      <div class="warn-info">
+        <span class="warn-title"><span class="warn-icon">⚠️</span> 경고</span>
+        <div class="warn-dots" id="g-warn-dots"></div>
+        <span class="warn-status" id="g-warn-status">0/3</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="warn-add-btn" onclick="addWarning('gia')">+ 경고</button>
+        <button class="warn-reset-btn" onclick="resetWarning('gia')">초기화</button>
+      </div>
+    </div>
+    <div class="warn-msg" id="g-warn-msg"></div>
+  </div>
+</div>
+
+<!-- DANIEL -->
+<div id="tab-daniel" class="tab">
+  <div class="card" id="dl"></div>
+  <div id="d-timer-card"></div>
+  <div class="card">
+    <div class="task-hdr">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#555">오늘의 공부 체크리스트</div>
+        <div id="ddt" class="task-date"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        <span id="dsc" style="font-size:11px;color:#aaa"></span>
+        <span class="today-total">⏱ <span data-time-total="daniel">0:00</span></span>
+      </div>
+    </div>
+    <div id="dtk"></div>
+    <div id="d-empty" class="empty" style="display:none">할 일이 없어요!<br><span style="font-size:12px">✏️ 할 일 탭에서 추가해보세요</span></div>
+    <div class="done-banner" id="ddn">🎉 오늘 공부 완료! +1일 달성!</div>
+  </div>
+  <div class="warn-card lvl-0" id="d-warn-card">
+    <div class="warn-row">
+      <div class="warn-info">
+        <span class="warn-title"><span class="warn-icon">⚠️</span> 경고</span>
+        <div class="warn-dots" id="d-warn-dots"></div>
+        <span class="warn-status" id="d-warn-status">0/3</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="warn-add-btn" onclick="addWarning('daniel')">+ 경고</button>
+        <button class="warn-reset-btn" onclick="resetWarning('daniel')">초기화</button>
+      </div>
+    </div>
+    <div class="warn-msg" id="d-warn-msg"></div>
+  </div>
+</div>
+
+<!-- TASKS -->
+<div id="tab-tasks" class="tab">
+  <div class="card">
+    <div class="sec-title" style="margin-bottom:6px">공부 목록 방식</div>
+    <div style="font-size:11px;color:#bbb;margin-bottom:10px">기본은 "공동 목록" — 추가하면 Gia / Daniel 모두에게 자동 적용돼요</div>
+    <div class="mode-grid">
+      <button class="mode-btn" id="mb-shared" onclick="setMode('shared')">
+        <div class="mode-icon">🤝</div>
+        <div class="mode-label">공동 목록</div>
+        <div class="mode-desc">Gia·Daniel 동일</div>
+      </button>
+      <button class="mode-btn" id="mb-individual" onclick="setMode('individual')">
+        <div class="mode-icon">👤</div>
+        <div class="mode-label">개인 목록</div>
+        <div class="mode-desc">각자 다른 할 일</div>
+      </button>
+    </div>
+  </div>
+
+  <div id="editor-shared" style="display:none">
+    <div class="card">
+      <div class="sec-head">
+        <div>
+          <div class="sec-title">🤝 공동 할 일 목록</div>
+          <div class="sec-sub">Gia, Daniel 모두에게 동일하게 적용</div>
+        </div>
+        <span class="tag tag-s" id="sc-shared">0개</span>
+      </div>
+      <div class="task-box" id="list-shared"></div>
+      <div class="add-row">
+        <input class="inp" id="inp-shared" placeholder="할 일 추가... (예: 수학 풀기)" onkeydown="handleEnter(event,()=>addTask('shared'))">
+        <button class="btn btn-green" onclick="addTask('shared')">+ 추가</button>
+      </div>
+      <div class="preview-row">
+        <div class="preview-col g">
+          <div class="preview-label">🌸 GIA에게 적용</div>
+          <div class="preview-content" id="pv-g">0개의 할 일</div>
+        </div>
+        <div class="preview-col d">
+          <div class="preview-label">⚡ DANIEL에게 적용</div>
+          <div class="preview-content" id="pv-d">0개의 할 일</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="editor-individual" style="display:none">
+    <div class="card">
+      <div style="background:#FAEEDA;border:1px solid #EF9F27;border-radius:10px;padding:10px 13px;font-size:12px;color:#854F0B;margin-bottom:11px">
+        💡 <strong>둘 다에 추가</strong> 버튼을 누르면 Gia·Daniel 양쪽에 같은 할 일이 한 번에 추가돼요
+      </div>
+      <div class="add-row">
+        <input class="inp" id="inp-both" placeholder="둘 다에 추가할 할 일... (예: 영어 노블 읽기)" onkeydown="handleEnter(event,addBoth)">
+        <button class="btn btn-green" onclick="addBoth()">↔ 둘 다</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-head">
+        <div>
+          <div class="sec-title" style="color:#993556">🌸 Gia 할 일</div>
+        </div>
+        <span class="tag tag-g" id="sc-gia">0개</span>
+      </div>
+      <div class="task-box" id="list-gia"></div>
+      <div class="add-row">
+        <input class="inp" id="inp-gia" placeholder="Gia만의 할 일..." onkeydown="handleEnter(event,()=>addTask('gia'))">
+        <button class="btn btn-green" onclick="addTask('gia')">+ Gia</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-head">
+        <div>
+          <div class="sec-title" style="color:#185FA5">⚡ Daniel 할 일</div>
+        </div>
+        <span class="tag tag-d" id="sc-daniel">0개</span>
+      </div>
+      <div class="task-box" id="list-daniel"></div>
+      <div class="add-row">
+        <input class="inp" id="inp-daniel" placeholder="Daniel만의 할 일..." onkeydown="handleEnter(event,()=>addTask('daniel'))">
+        <button class="btn btn-green" onclick="addTask('daniel')">+ Daniel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div id="tab-stats" class="tab">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+    <div class="bseg">
+      <button class="sb on" onclick="setStatPlayer('gia',this)">🌸 Gia</button>
+      <button class="sb" onclick="setStatPlayer('daniel',this)">⚡ Daniel</button>
+      <button class="sb" onclick="setStatPlayer('compare',this)">🆚 비교</button>
+    </div>
+  </div>
+  <div id="stats-content"></div>
+</div>
+
+<!-- BOOKS -->
+<div id="tab-books" class="tab">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div class="bseg">
+      <button class="sb on" onclick="sbp('gia',this)">🌸 Gia</button>
+      <button class="sb" onclick="sbp('daniel',this)">⚡ Daniel</button>
+    </div>
+    <span id="bcn" style="font-size:12px;color:#999"></span>
+  </div>
+  <div class="add-row" style="margin-bottom:9px">
+    <input class="inp" id="bip" placeholder="책 제목 입력 (예: Charlotte's Web)" onkeydown="handleEnter(event,ab)">
+    <button class="btn" onclick="ab()">+ 추가</button>
+  </div>
+  <div class="card"><div id="bl"></div></div>
+  <div style="margin-top:9px">
+    <div class="pb" style="height:9px"><div class="pf pfb" id="bp2" style="width:0%"></div></div>
+    <p id="bpc" class="pct" style="margin-top:4px">0/100권</p>
+  </div>
+</div>
+
+</div>
+
+<script>
+const TD = new Date().toISOString().slice(0,10);
+const DW = ['일','월','화','수','목','금','토'];
+const LV = [
+  {n:1,nm:'🌱 Seed 씨앗',mx:10},{n:2,nm:'🌿 Sprout 새싹',mx:20},
+  {n:3,nm:'🧭 Explorer 탐험가',mx:30},{n:4,nm:'📖 Reader 독서가',mx:40},
+  {n:5,nm:'🎓 Scholar 학자',mx:50},{n:6,nm:'🏅 Champion 챔피언',mx:60},
+  {n:7,nm:'💎 Expert 전문가',mx:70},{n:8,nm:'🔥 Master 마스터',mx:80},
+  {n:9,nm:'⭐ Legend 전설',mx:90},{n:10,nm:'🦁 Hero 영웅',mx:100}
+];
+let bp = 'gia', dragSrc = null, statPlayer = 'gia';
+let chartTask = null, chartWeek = null, chartCompare = null;
+
+// ── IME-safe Enter handler ──────────────────────────
+// Korean IME bug fix: if composition is in progress, Enter should not trigger action
+function handleEnter(event, fn){
+  if(event.key!=='Enter')return;
+  // event.isComposing is true while IME is composing a character
+  // event.keyCode === 229 also indicates IME composition
+  if(event.isComposing||event.keyCode===229)return;
+  event.preventDefault();
+  fn();
+}
+
+// ── Storage ──────────────────────────────────────────
+function ld(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function defaultPlayer(){return{days:0,lastDate:null,tt:{date:null,done:{}},books:[],warnings:0,studyHistory:{},activeTimer:null};}
+function getPlayer(p){return ld('player_'+p)||defaultPlayer();}
+function savePlayer(p,d){sv('player_'+p,d);}
+function getMode(){return ld('task_mode');}
+function getTasks(who){return ld('tasks_'+who)||[];}
+function saveTasks(who,arr){sv('tasks_'+who,arr);}
+function getTasksFor(p){const m=getMode();if(!m)return[];return m==='shared'?getTasks('shared'):getTasks(p);}
+
+// ── Helpers ──────────────────────────────────────────
+function getLv(d){if(d>=100)return{n:'★',nm:'🥇 GOLD MEDAL',mx:100,pv:90};for(let i=0;i<LV.length;i++)if(d<LV[i].mx)return{...LV[i],pv:i>0?LV[i-1].mx:0};return{...LV[9],pv:90};}
+function getPct(d){if(d>=100)return 100;const l=getLv(d);return Math.round(((d-l.pv)/(l.mx-l.pv))*100);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function svgCk(w,h){const m=Math.round;return`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="2,${m(h*.52)} ${m(w*.4)},${m(h*.82)} ${w-2},${m(h*.2)}" stroke="white" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
+function toast(msg,kind){
+  const e=document.getElementById('toast');
+  e.textContent=msg;
+  e.className='';
+  e.classList.add('show');
+  if(kind)e.classList.add(kind);
+  clearTimeout(e._t);e._t=setTimeout(()=>e.className='',kind==='danger'?3500:2700);
+}
+function fmtTime(s){
+  s=Math.max(0,Math.floor(s));
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+  if(h>0)return`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  return`${m}:${String(sec).padStart(2,'0')}`;
+}
+function fmtTimeKor(s){
+  s=Math.max(0,Math.floor(s));
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);
+  if(h>0)return`${h}시간 ${m}분`;
+  if(m>0)return`${m}분`;
+  return`${s}초`;
+}
+
+// ── Timer ────────────────────────────────────────────
+function getTaskTimeToday(player,taskKey){
+  const data=getPlayer(player);
+  if(data.activeTimer&&data.activeTimer.taskKey===taskKey)return data.activeTimer.accumulated||0;
+  return data.studyHistory?.[TD]?.byTask?.[taskKey]||0;
+}
+function getTodayTotal(player){
+  const data=getPlayer(player);
+  let total=0;
+  const today=data.studyHistory?.[TD];
+  if(today)Object.values(today.byTask||{}).forEach(t=>total+=t);
+  if(data.activeTimer){
+    const taskKey=data.activeTimer.taskKey;
+    const saved=today?.byTask?.[taskKey]||0;
+    total+=(data.activeTimer.accumulated||0)-saved;
+  }
+  return total;
+}
+function startTimer(player,taskKey){
+  let data=getPlayer(player);
+  if(data.activeTimer&&data.activeTimer.isRunning&&data.activeTimer.taskKey!==taskKey){
+    pauseTimerSilent(player);
+    data=getPlayer(player);
+  }
+  if(data.activeTimer&&data.activeTimer.taskKey===taskKey&&data.activeTimer.isRunning)return;
+  const existing=data.studyHistory?.[TD]?.byTask?.[taskKey]||0;
+  data.activeTimer={taskKey,accumulated:data.activeTimer?.taskKey===taskKey?data.activeTimer.accumulated:existing,isRunning:true};
+  savePlayer(player,data);
+  rp(player);
+}
+function pauseTimerSilent(player){
+  const data=getPlayer(player);
+  if(!data.activeTimer)return;
+  if(!data.studyHistory)data.studyHistory={};
+  if(!data.studyHistory[TD])data.studyHistory[TD]={total:0,byTask:{}};
+  data.studyHistory[TD].byTask[data.activeTimer.taskKey]=data.activeTimer.accumulated||0;
+  let t=0;Object.values(data.studyHistory[TD].byTask).forEach(x=>t+=x);
+  data.studyHistory[TD].total=t;
+  data.activeTimer.isRunning=false;
+  savePlayer(player,data);
+}
+function pauseTimer(player){pauseTimerSilent(player);rp(player);}
+function stopTimer(player){
+  pauseTimerSilent(player);
+  const data=getPlayer(player);data.activeTimer=null;savePlayer(player,data);rp(player);
+}
+
+let tickCount=0;
+setInterval(()=>{
+  tickCount++;
+  const save=tickCount%5===0;
+  ['gia','daniel'].forEach(p=>{
+    const data=getPlayer(p);
+    if(!data.activeTimer||!data.activeTimer.isRunning)return;
+    data.activeTimer.accumulated=(data.activeTimer.accumulated||0)+1;
+    if(save){
+      if(!data.studyHistory)data.studyHistory={};
+      if(!data.studyHistory[TD])data.studyHistory[TD]={total:0,byTask:{}};
+      data.studyHistory[TD].byTask[data.activeTimer.taskKey]=data.activeTimer.accumulated;
+      let t=0;Object.values(data.studyHistory[TD].byTask).forEach(x=>t+=x);
+      data.studyHistory[TD].total=t;
+    }
+    savePlayer(p,data);
+    updateTimerDisplays(p);
+  });
+},1000);
+
+function updateTimerDisplays(player){
+  const data=getPlayer(player);
+  if(!data.activeTimer)return;
+  const taskTime=data.activeTimer.accumulated||0;
+  const total=getTodayTotal(player);
+  document.querySelectorAll(`[data-time-task="${player}"][data-key="${esc(data.activeTimer.taskKey)}"]`).forEach(el=>{el.textContent=fmtTime(taskTime);});
+  document.querySelectorAll(`[data-time-total="${player}"]`).forEach(el=>{el.textContent=fmtTime(total);});
+  const big=document.getElementById(player+'-big-time');
+  if(big)big.textContent=fmtTime(taskTime);
+}
+
+// ── Warnings (DRAMATIC) ──────────────────────────────
+function addWarning(player){
+  const data=getPlayer(player);
+  data.warnings=(data.warnings||0)+1;
+  const card=document.getElementById((player==='gia'?'g':'d')+'-warn-card');
+  // Shake animation
+  card.classList.add('shake');
+  setTimeout(()=>card.classList.remove('shake'),500);
+
+  if(data.warnings>=3){
+    data.warnings=0;
+    data.days=Math.max(0,data.days-1);
+    toast('🚨 경고 3회 누적! -1일 차감!',  'danger');
+  }else if(data.warnings===2){
+    toast('⚠️ 경고 2/3 — 다음은 감점!', 'warn');
+  }else{
+    toast(`⚠️ 경고 ${data.warnings}/3`, 'warn');
+  }
+  savePlayer(player,data);
+  rp(player);
+}
+function resetWarning(player){
+  const data=getPlayer(player);
+  if(!data.warnings){toast('이미 경고가 없어요');return;}
+  data.warnings=0;savePlayer(player,data);
+  toast('✓ 경고 초기화 완료');
+  rp(player);
+}
+
+// ── Nav ──────────────────────────────────────────────
+function gt(t){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(x=>x.classList.remove('on'));
+  document.getElementById('tab-'+t).classList.add('on');
+  document.querySelector('.nb[data-t="'+t+'"]').classList.add('on');
+  ({battle:rb,gia:()=>rp('gia'),daniel:()=>rp('daniel'),tasks:rte,stats:rs,books:rbk})[t]();
+}
+
+// ── BATTLE ───────────────────────────────────────────
+function rb(){
+  const g=getPlayer('gia'),d=getPlayer('daniel');
+  ['gia','daniel'].forEach(p=>{
+    const data=p==='gia'?g:d,oth=p==='gia'?d:g;
+    const lv=getLv(data.days),gold=data.days>=100,c=p==='gia'?'g':'d';
+    const avCls=gold?'av-gold':(p==='gia'?'av-g':'av-d');
+    const bks=(data.books||[]).filter(b=>b.done).length,p2=getPct(data.days);
+    const totalSec=Object.values(data.studyHistory||{}).reduce((s,h)=>s+(h.total||0),0);
+    const el=document.getElementById('bc-'+p);
+    el.className='player-card'+(data.days>oth.days&&data.days>0?' leading':'');
+    el.innerHTML=`<div class="avatar ${avCls}">${gold?'🥇':(p==='gia'?'G':'D')}</div>
+      <div class="pname">${p==='gia'?'Gia':'Daniel'}</div>
+      <div class="plvl">${gold?'GOLD MEDAL':'Lv.'+lv.n+' '+lv.nm}</div>
+      <div class="pstats">
+        <div class="stat"><div class="sn">${data.days}</div><div class="sl">완료 일수</div></div>
+        <div class="stat"><div class="sn">${bks}</div><div class="sl">읽은 책</div></div>
+      </div>
+      <div class="pstats" style="margin-top:5px">
+        <div class="stat"><div class="sn" style="font-size:14px">${fmtTimeKor(totalSec)}</div><div class="sl">누적 공부</div></div>
+        <div class="stat" style="${data.warnings?'background:#FCEBEB':''}"><div class="sn" style="font-size:14px;color:${data.warnings?'#A32D2D':'#1a1a1a'}">${data.warnings||0}/3</div><div class="sl">⚠ 경고</div></div>
+      </div>
+      <div class="pb"><div class="pf pf${c}" style="width:${p2}%"></div></div>
+      <div class="pct">${data.days}/100일 (${p2}%)</div>
+      ${gold?'<div style="margin-top:7px;font-size:12px;font-weight:700;color:#BA7517">🥇 금메달 달성!</div>':''}`;
+  });
+  const bm=document.getElementById('bm');
+  const gd=g.days,dd=d.days;
+  if(gd>dd)bm.innerHTML=`👑 Gia가 <strong style="color:#993556">${gd-dd}일</strong> 앞서고 있어요!`;
+  else if(dd>gd)bm.innerHTML=`👑 Daniel이 <strong style="color:#185FA5">${dd-gd}일</strong> 앞서고 있어요!`;
+  else bm.textContent=gd===0?'아직 시작 전! 오늘부터 도전! 💪':'동률! 화이팅! 🔥';
+  [['g',g,'#D4537E','Gia'],['d',d,'#378ADD','Daniel']].forEach(([c,data,col,name])=>{
+    let h=`<div class="cal-row"><span class="cal-lbl" style="color:${col}">${name}</span><div class="dots">`;
+    for(let i=0;i<100;i++)h+=`<div class="dot" style="${i<data.days?'background:'+col:''}"></div>`;
+    document.getElementById('c'+c).innerHTML=h+'</div></div>';
+  });
+}
+
+// ── PLAYER STUDY ─────────────────────────────────────
+function rp(p){
+  const data=getPlayer(p),lv=getLv(data.days),gold=data.days>=100;
+  const c=p==='gia'?'g':'d',avCls=gold?'av-gold':(p==='gia'?'av-g':'av-d'),p2=getPct(data.days);
+
+  document.getElementById(p==='gia'?'gl':'dl').innerHTML=`
+    <div class="lv-wrap">
+      <div class="lv-badge ${avCls}" style="font-size:${gold?20:16}px">${gold?'🥇':lv.n}</div>
+      <div class="lv-info">
+        <div class="lv-name">${gold?'GOLD MEDAL 달성! 🥇':'Level '+lv.n+' — '+lv.nm}</div>
+        <div class="lv-sub">${gold?'100일 챌린지 완주!':'다음 레벨까지 '+(lv.mx-data.days)+'일 남음'}</div>
+        <div class="pb" style="margin-top:7px"><div class="pf pf${c}" style="width:${p2}%"></div></div>
+        <div class="lv-row"><span>${data.days}일 완료</span><span>${data.days}/${lv.mx}일</span></div>
+      </div>
+    </div>`;
+
+  // Active timer card
+  const tcEl=document.getElementById(p+'-timer-card');
+  if(data.activeTimer){
+    const t=data.activeTimer,isRun=t.isRunning;
+    tcEl.innerHTML=`<div class="timer-card${isRun?'':' paused'}">
+      <div class="timer-label">${isRun?'⏱ 공부 중':'⏸ 일시정지'}</div>
+      <div class="timer-task">${esc(t.taskKey)}</div>
+      <div class="timer-display" id="${p}-big-time">${fmtTime(t.accumulated||0)}</div>
+      <div class="timer-actions">
+        ${isRun?`<button class="timer-btn" onclick="pauseTimer('${p}')">⏸ 일시정지</button>`:`<button class="timer-btn primary" onclick="startTimer('${p}','${esc(t.taskKey).replace(/'/g,"\\'")}')">▶ 재시작</button>`}
+        <button class="timer-btn" onclick="stopTimer('${p}')">⏹ 종료</button>
+      </div>
+    </div>`;
+  }else{tcEl.innerHTML='';}
+
+  document.getElementById(p==='gia'?'gdt':'ddt').textContent=TD+' ('+DW[new Date().getDay()]+'요일)';
+
+  const tasks=getTasksFor(p);
+  const listEl=document.getElementById(p==='gia'?'gtk':'dtk');
+  const emEl=document.getElementById(p+'-empty');
+  const dnEl=document.getElementById(p==='gia'?'gdn':'ddn');
+  const scEl=document.getElementById(p==='gia'?'gsc':'dsc');
+
+  if(!tasks.length){
+    listEl.innerHTML='';emEl.style.display='block';dnEl.style.display='none';scEl.textContent='';
+  }else{
+    emEl.style.display='none';
+    if(data.tt.date!==TD){data.tt={date:TD,done:{}};savePlayer(p,data);}
+    let done=0;tasks.forEach((_,i)=>{if(data.tt.done[i])done++;});
+    scEl.textContent=done+'/'+tasks.length+' 완료';
+    listEl.innerHTML=tasks.map((t,i)=>{
+      const ck=!!data.tt.done[i];
+      const taskTime=getTaskTimeToday(p,t);
+      const isActive=data.activeTimer&&data.activeTimer.taskKey===t;
+      const isRunning=isActive&&data.activeTimer.isRunning;
+      const tEsc=esc(t).replace(/'/g,"\\'");
+      const btnClass=isRunning?'task-btn pause':'task-btn start';
+      const btnText=isRunning?'⏸':'▶';
+      return`<div class="ti${isActive?' active':''}">
+        <div class="ck${ck?' on':''}" onclick="toggleT('${p}',${i})">${ck?svgCk(11,11):''}</div>
+        <span class="tl${ck?' dn':''}" onclick="toggleT('${p}',${i})">${esc(t)}</span>
+        <span class="task-time${isRunning?' running':''}" data-time-task="${p}" data-key="${esc(t)}">${fmtTime(taskTime)}</span>
+        <button class="${btnClass}" onclick="${isRunning?`pauseTimer('${p}')`:`startTimer('${p}','${tEsc}')`}">${btnText}</button>
+      </div>`;
+    }).join('');
+    dnEl.style.display=done===tasks.length?'block':'none';
+  }
+
+  document.querySelectorAll(`[data-time-total="${p}"]`).forEach(el=>{el.textContent=fmtTime(getTodayTotal(p));});
+
+  // Warnings (dramatic)
+  const w=data.warnings||0;
+  const wCard=document.getElementById((p==='gia'?'g':'d')+'-warn-card');
+  wCard.classList.remove('lvl-0','lvl-1','lvl-2','lvl-3');
+  wCard.classList.add('lvl-'+w);
+  document.getElementById((p==='gia'?'g':'d')+'-warn-dots').innerHTML=[0,1,2].map(i=>`<div class="warn-dot${i<w?' on':''}"></div>`).join('');
+  document.getElementById((p==='gia'?'g':'d')+'-warn-status').textContent=w+'/3';
+  const msgEl=document.getElementById((p==='gia'?'g':'d')+'-warn-msg');
+  if(w===0){msgEl.textContent='';msgEl.style.display='none';}
+  else if(w===1){msgEl.textContent='조심하세요! 2번 더 누적되면 -1일 차감됩니다';msgEl.style.display='block';}
+  else if(w===2){msgEl.textContent='⚠️ 위험! 1번만 더 받으면 -1일 감점돼요!';msgEl.style.display='block';}
+}
+
+function toggleT(p,i){
+  const data=getPlayer(p);
+  if(data.tt.date!==TD)data.tt={date:TD,done:{}};
+  data.tt.done[i]=!data.tt.done[i];
+  const tasks=getTasksFor(p);
+  const allDone=tasks.length>0&&tasks.every((_,idx)=>data.tt.done[idx]);
+  if(allDone&&data.lastDate!==TD){
+    const pv=getLv(data.days).n;
+    data.days=Math.min(100,data.days+1);data.lastDate=TD;
+    const nv=getLv(data.days).n;
+    if(data.days>=100)toast('🥇 금메달 달성! 100일 완주!');
+    else if(nv!==pv)toast('🎉 레벨 UP! Level '+nv+' '+getLv(data.days).nm+'!');
+    else toast('✅ 오늘 완료! '+data.days+'일 달성!');
+  }
+  savePlayer(p,data);rp(p);
+}
+
+// ── TASK EDITOR ──────────────────────────────────────
+function setMode(mode){sv('task_mode',mode);rte();}
+
+function rte(){
+  const mode=getMode();
+  document.getElementById('mb-shared').className='mode-btn'+(mode==='shared'?' on-shared':'');
+  document.getElementById('mb-individual').className='mode-btn'+(mode==='individual'?' on-individual':'');
+  document.getElementById('editor-shared').style.display=mode==='shared'?'block':'none';
+  document.getElementById('editor-individual').style.display=mode==='individual'?'block':'none';
+  if(mode==='shared'){renderList('shared');updateSharedPreview();}
+  if(mode==='individual'){renderList('gia');renderList('daniel');}
+}
+
+function updateSharedPreview(){
+  const tasks=getTasks('shared');
+  const txt = tasks.length===0 ? '0개의 할 일' : tasks.length+'개 — '+tasks.slice(0,2).map(t=>t.length>10?t.slice(0,10)+'…':t).join(', ')+(tasks.length>2?' 외 '+(tasks.length-2)+'개':'');
+  const pvg=document.getElementById('pv-g');const pvd=document.getElementById('pv-d');
+  if(pvg)pvg.textContent=txt;
+  if(pvd)pvd.textContent=txt;
+}
+
+function renderList(who){
+  const tasks=getTasks(who);
+  const listEl=document.getElementById('list-'+who);
+  const cntEl=document.getElementById('sc-'+who);
+  if(cntEl)cntEl.textContent=tasks.length+'개';
+  if(!tasks.length){listEl.innerHTML='<div class="task-box-empty">아직 할 일이 없어요</div>';return;}
+  listEl.innerHTML=tasks.map((t,i)=>`
+    <div class="tei" draggable="true"
+      ondragstart="dstart(event,'${who}',${i})"
+      ondragover="event.preventDefault();this.style.background='#f0f8f4'"
+      ondragleave="this.style.background='#fff'"
+      ondrop="ddrop(event,'${who}',${i})">
+      <span class="drag-handle">⋮⋮</span>
+      <span class="tei-num">${i+1}</span>
+      <span class="tei-text">${esc(t)}</span>
+      <button class="tei-del" onclick="delTask('${who}',${i})">×</button>
+    </div>`).join('');
+}
+
+function addTask(who){
+  const inp=document.getElementById('inp-'+who);
+  const text=(inp.value||'').trim();
+  if(!text)return;
+  const tasks=getTasks(who);
+  if(tasks.includes(text)){toast('이미 있는 할 일이에요');return;}
+  tasks.push(text);saveTasks(who,tasks);
+  inp.value='';renderList(who);resetDaily(who);
+  if(who==='shared')updateSharedPreview();
+  toast('✅ 추가됨: '+text);
+}
+
+function addBoth(){
+  const inp=document.getElementById('inp-both');
+  const text=(inp.value||'').trim();if(!text)return;
+  let added=0;
+  ['gia','daniel'].forEach(who=>{
+    const tasks=getTasks(who);
+    if(!tasks.includes(text)){tasks.push(text);saveTasks(who,tasks);added++;}
+  });
+  ['gia','daniel'].forEach(p=>{const d=getPlayer(p);if(d.tt.date===TD){d.tt={date:TD,done:{}};savePlayer(p,d);}});
+  inp.value='';
+  renderList('gia');renderList('daniel');
+  if(added===0)toast('이미 둘 다 가지고 있어요');
+  else if(added===2)toast('✅ Gia·Daniel 둘 다에 추가: '+text);
+  else toast('✅ 한쪽만 추가됨: '+text);
+}
+
+function delTask(who,idx){
+  const tasks=getTasks(who);const removed=tasks[idx];tasks.splice(idx,1);saveTasks(who,tasks);
+  ['gia','daniel'].forEach(p=>{
+    const data=getPlayer(p);
+    if(data.activeTimer&&data.activeTimer.taskKey===removed){data.activeTimer=null;savePlayer(p,data);}
+  });
+  renderList(who);resetDaily(who);
+  if(who==='shared')updateSharedPreview();
+  toast('🗑 삭제됨');
+}
+
+function resetDaily(who){
+  const players=who==='shared'?['gia','daniel']:[who];
+  players.forEach(p=>{const d=getPlayer(p);if(d.tt.date===TD){d.tt={date:TD,done:{}};savePlayer(p,d);}});
+}
+
+function dstart(e,who,idx){dragSrc={who,idx};e.dataTransfer.effectAllowed='move';}
+function ddrop(e,who,idx){
+  e.preventDefault();
+  document.querySelectorAll('.tei').forEach(el=>el.style.background='#fff');
+  if(!dragSrc||dragSrc.who!==who||dragSrc.idx===idx)return;
+  const tasks=getTasks(who);const[m]=tasks.splice(dragSrc.idx,1);tasks.splice(idx,0,m);
+  saveTasks(who,tasks);resetDaily(who);renderList(who);dragSrc=null;
+}
+
+// ── STATS ────────────────────────────────────────────
+function setStatPlayer(p,btn){
+  statPlayer=p;
+  document.querySelectorAll('#tab-stats .sb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');rs();
+}
+function getLast7(player){
+  const data=getPlayer(player);const days=[];
+  for(let i=6;i>=0;i--){
+    const dd=new Date();dd.setDate(dd.getDate()-i);
+    const key=dd.toISOString().slice(0,10);
+    let total=data.studyHistory?.[key]?.total||0;
+    if(key===TD&&data.activeTimer){
+      const saved=data.studyHistory?.[TD]?.byTask?.[data.activeTimer.taskKey]||0;
+      total+=(data.activeTimer.accumulated||0)-saved;
+    }
+    days.push({date:key,label:DW[dd.getDay()]+'\n'+(dd.getMonth()+1)+'/'+dd.getDate(),total});
+  }
+  return days;
+}
+function rs(){
+  const c=document.getElementById('stats-content');
+  if(chartTask){chartTask.destroy();chartTask=null;}
+  if(chartWeek){chartWeek.destroy();chartWeek=null;}
+  if(chartCompare){chartCompare.destroy();chartCompare=null;}
+
+  if(statPlayer==='compare'){
+    const g=getPlayer('gia'),d=getPlayer('daniel');
+    const days=getLast7('gia'),dDays=getLast7('daniel');
+    const gTotal=Object.values(g.studyHistory||{}).reduce((s,h)=>s+(h.total||0),0);
+    const dTotal=Object.values(d.studyHistory||{}).reduce((s,h)=>s+(h.total||0),0);
+    c.innerHTML=`
+      <div class="stats-grid">
+        <div class="stat-big" style="background:#FBEAF0">
+          <div class="stat-big-n" style="color:#993556">${fmtTimeKor(gTotal)}</div>
+          <div class="stat-big-l">🌸 Gia 누적</div>
+        </div>
+        <div class="stat-big" style="background:#E6F1FB">
+          <div class="stat-big-n" style="color:#185FA5">${fmtTimeKor(dTotal)}</div>
+          <div class="stat-big-l">⚡ Daniel 누적</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="sec-title" style="margin-bottom:9px">📈 최근 7일 공부시간 비교</div>
+        <div class="chart-box"><canvas id="ch-cmp"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="sec-title" style="margin-bottom:9px">🏆 종합 비교</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse">
+          <thead><tr style="border-bottom:1px solid #eee"><th style="text-align:left;padding:8px 0;color:#888">항목</th><th style="text-align:right;padding:8px 0;color:#993556">🌸 Gia</th><th style="text-align:right;padding:8px 0;color:#185FA5">⚡ Daniel</th></tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #f5f3f0"><td style="padding:8px 0">완료 일수</td><td style="text-align:right">${g.days}일</td><td style="text-align:right">${d.days}일</td></tr>
+            <tr style="border-bottom:1px solid #f5f3f0"><td style="padding:8px 0">누적 공부시간</td><td style="text-align:right">${fmtTimeKor(gTotal)}</td><td style="text-align:right">${fmtTimeKor(dTotal)}</td></tr>
+            <tr style="border-bottom:1px solid #f5f3f0"><td style="padding:8px 0">읽은 책</td><td style="text-align:right">${(g.books||[]).filter(b=>b.done).length}권</td><td style="text-align:right">${(d.books||[]).filter(b=>b.done).length}권</td></tr>
+            <tr><td style="padding:8px 0">현재 경고</td><td style="text-align:right;color:${g.warnings?'#A32D2D':'#1a1a1a'};font-weight:${g.warnings?'700':'400'}">${g.warnings||0}/3</td><td style="text-align:right;color:${d.warnings?'#A32D2D':'#1a1a1a'};font-weight:${d.warnings?'700':'400'}">${d.warnings||0}/3</td></tr>
+          </tbody>
+        </table>
+      </div>`;
+    setTimeout(()=>{
+      const ctx=document.getElementById('ch-cmp');
+      if(!ctx)return;
+      chartCompare=new Chart(ctx,{type:'bar',data:{labels:days.map(x=>x.label),datasets:[
+        {label:'Gia',data:days.map(x=>Math.round(x.total/60)),backgroundColor:'#D4537E'},
+        {label:'Daniel',data:dDays.map(x=>Math.round(x.total/60)),backgroundColor:'#378ADD'}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:(ctx)=>ctx.dataset.label+': '+ctx.parsed.y+'분'}}},scales:{y:{title:{display:true,text:'분'},beginAtZero:true}}}});
+    },50);
+    return;
+  }
+
+  const data=getPlayer(statPlayer);
+  const today=data.studyHistory?.[TD];
+  const breakdown=today?Object.entries(today.byTask||{}).filter(([k,v])=>v>0):[];
+  if(data.activeTimer&&data.activeTimer.isRunning){
+    const tk=data.activeTimer.taskKey;const cur=data.activeTimer.accumulated||0;
+    const idx=breakdown.findIndex(([k])=>k===tk);
+    if(idx>=0)breakdown[idx][1]=cur;
+    else if(cur>0)breakdown.push([tk,cur]);
+  }
+  const days=getLast7(statPlayer);
+  const totalSec=Object.values(data.studyHistory||{}).reduce((s,h)=>s+(h.total||0),0);
+  const todayTotal=getTodayTotal(statPlayer);
+  const weekTotal=days.reduce((s,d)=>s+d.total,0);
+  const avgDaily=Math.round(weekTotal/7);
+  const colors=['#D4537E','#378ADD','#1D9E75','#BA7517','#7F77DD','#D85A30','#5DCAA5','#EF9F27'];
+  const isGia=statPlayer==='gia';
+
+  c.innerHTML=`
+    <div class="stats-grid">
+      <div class="stat-big"><div class="stat-big-n">${fmtTimeKor(todayTotal)}</div><div class="stat-big-l">오늘 공부</div></div>
+      <div class="stat-big"><div class="stat-big-n">${fmtTimeKor(weekTotal)}</div><div class="stat-big-l">최근 7일</div></div>
+      <div class="stat-big"><div class="stat-big-n">${fmtTimeKor(avgDaily)}</div><div class="stat-big-l">일 평균(7일)</div></div>
+      <div class="stat-big"><div class="stat-big-n">${fmtTimeKor(totalSec)}</div><div class="stat-big-l">전체 누적</div></div>
+    </div>
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:9px">🥧 오늘 과목별 시간</div>
+      ${breakdown.length?'<div class="chart-box"><canvas id="ch-task"></canvas></div>':'<div class="empty">오늘 아직 공부 시작 전이에요</div>'}
+    </div>
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:9px">📈 최근 7일 공부시간</div>
+      <div class="chart-box"><canvas id="ch-week"></canvas></div>
+    </div>`;
+
+  setTimeout(()=>{
+    if(breakdown.length){
+      const ctx=document.getElementById('ch-task');
+      if(ctx)chartTask=new Chart(ctx,{type:'doughnut',data:{labels:breakdown.map(([k])=>k),datasets:[{data:breakdown.map(([,v])=>Math.round(v/60*10)/10),backgroundColor:colors.slice(0,breakdown.length)}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:(ctx)=>ctx.label+': '+fmtTimeKor(breakdown[ctx.dataIndex][1])}}}}});
+    }
+    const ctx2=document.getElementById('ch-week');
+    if(ctx2)chartWeek=new Chart(ctx2,{type:'bar',data:{labels:days.map(x=>x.label),datasets:[{label:'공부시간(분)',data:days.map(x=>Math.round(x.total/60)),backgroundColor:isGia?'#D4537E':'#378ADD',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>fmtTimeKor(days[ctx.dataIndex].total)}}},scales:{y:{title:{display:true,text:'분'},beginAtZero:true}}}});
+  },50);
+}
+
+// ── BOOKS ────────────────────────────────────────────
+function sbp(p,btn){bp=p;document.querySelectorAll('#tab-books .sb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rbk();}
+function rbk(){
+  const data=getPlayer(bp),books=data.books||[];
+  const dn=books.filter(b=>b.done).length;
+  document.getElementById('bcn').textContent=dn+'/100권 완료';
+  document.getElementById('bp2').style.width=Math.min(dn,100)+'%';
+  document.getElementById('bpc').textContent=dn+'/100권';
+  const bl=document.getElementById('bl');
+  if(!books.length){bl.innerHTML='<div class="empty">책 제목을 추가해보세요! 📖</div>';return;}
+  bl.innerHTML=books.map((b,i)=>`
+    <div class="bi">
+      <span class="bno">${i+1}</span>
+      <div class="bck${b.done?' on':''}" onclick="tb(${i})">${b.done?svgCk(9,9):''}</div>
+      <span class="bt${b.done?' dn':''}">${esc(b.title)}</span>
+      <button class="xb" onclick="rmb(${i})">×</button>
+    </div>`).join('');
+}
+function ab(){
+  const inp=document.getElementById('bip'),t=(inp.value||'').trim();if(!t)return;
+  const data=getPlayer(bp);if(!data.books)data.books=[];
+  if(data.books.length>=100){toast('최대 100권!');return;}
+  data.books.push({title:t,done:false,date:TD});savePlayer(bp,data);inp.value='';rbk();
+}
+function tb(i){
+  const data=getPlayer(bp);data.books[i].done=!data.books[i].done;
+  if(data.books[i].done){const n=data.books.filter(b=>b.done).length;if(n===100)toast('🥇 100권 완독!');else toast('📚 완독! '+n+'권째!');}
+  savePlayer(bp,data);rbk();
+}
+function rmb(i){const data=getPlayer(bp);data.books.splice(i,1);savePlayer(bp,data);rbk();}
+
+// ── Init: default to shared mode ─────────────────────
+if(!getMode())sv('task_mode','shared');
+rb();
+</script>
+</body>
+</html>
